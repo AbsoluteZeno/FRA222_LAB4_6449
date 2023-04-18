@@ -83,8 +83,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry excluding="DSP/Source/SVMFunctions/SVMFunctions.c|DSP/Source/WindowFunctions/WindowFunctions.c|DSP/Source/TransformFunctions/TransformFunctions.c|DSP/Source/SupportFunctions/SupportFunctions.c|DSP/Source/StatisticsFunctions/StatisticsFunctions.c|DSP/Source/QuaternionMathFunctions/QuaternionMathFunctions.c|DSP/Source/MatrixFunctions/MatrixFunctions.c|DSP/Source/InterpolationFunctions/InterpolationFunctions.c|DSP/Source/FilteringFunctions/FilteringFunctions.c|DSP/Source/FastMathFunctions/FastMathFunctions.c|DSP/Source/DistanceFunctions/DistanceFunctions.c|DSP/Source/ControllerFunctions/ControllerFunctions.c|DSP/Source/ComplexMathFunctions/ComplexMathFunctions.c|DSP/Source/CommonTables/CommonTables.c|DSP/Source/BayesFunctions/BayesFunctions.c|DSP/Source/BasicMathFunctions/BasicMathFunctions.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry excluding="DSP/Source/WindowFunctions/WindowFunctions.c|DSP/Source/TransformFunctions/TransformFunctions.c|DSP/Source/SupportFunctions/SupportFunctions.c|DSP/Source/StatisticsFunctions/StatisticsFunctions.c|DSP/Source/QuaternionMathFunctions/QuaternionMathFunctions.c|DSP/Source/MatrixFunctions/MatrixFunctions.c|DSP/Source/InterpolationFunctions/InterpolationFunctions.c|DSP/Source/FilteringFunctions/FilteringFunctions.c|DSP/Source/FastMathFunctions/FastMathFunctions.c|DSP/Source/DistanceFunctions/DistanceFunctions.c|DSP/Source/ControllerFunctions/ControllerFunctions.c|DSP/Source/ComplexMathFunctions/ComplexMathFunctions.c|DSP/Source/CommonTables/CommonTables.c|DSP/Source/BayesFunctions/BayesFunctions.c|DSP/Source/BasicMathFunctions/BasicMathFunctions.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -168,8 +168,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="DSP/Source" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
