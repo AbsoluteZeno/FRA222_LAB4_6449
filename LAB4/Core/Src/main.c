@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "arm_math.h"
+#include "arm_math.h" //H.Wasupol
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,14 +47,14 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint32_t QEI_Raw;
-double ang_pos = 0;
+float32_t ang_pos = 0;
 
-float Duty = 5000.0;
+float32_t Duty = 5000.0;
 
 uint64_t _micros = 0;
 
 arm_pid_instance_f32 PID = {0};
-double ang_pos_des = 5000;
+float32_t ang_pos_des = 5000;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
