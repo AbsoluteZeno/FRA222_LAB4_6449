@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,14 +41,20 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint32_t QEI_Raw;
-float ang_pos = 0;
+double ang_pos = 0;
 
-uint16_t Duty = 5000;
+float Duty = 5000.0;
+
+uint64_t _micros = 0;
+
+arm_pid_instance_f32 PID = {0};
+double ang_pos_des = 5000;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,8 +63,9 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
-
+uint64_t micros();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -97,11 +104,16 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM2_Init();
   MX_TIM1_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
 
   HAL_TIM_Base_Start(&htim1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+  PID.Kp = 20000;
+  PID.Ki = 0;
+  PID.Kd = 0;
+  arm_pid_init_f32(&PID, 0);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -111,10 +123,55 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Duty);
 
-	  QEI_Raw = __HAL_TIM_GET_COUNTER(&htim2);
-	  ang_pos = QEI_Raw * 360/3072.0;
+	  static uint64_t timestamp = 0;
+
+	  while (timestamp >= micros())
+	  {
+		  timestamp = micros() + 500;
+
+		  QEI_Raw = __HAL_TIM_GET_COUNTER(&htim2);
+		  ang_pos = QEI_Raw * 360/3072.0;
+		  if (ang_pos > 36180)
+		  {
+			  ang_pos = ang_pos - 36360;
+		  }
+
+		  Duty = arm_pid_f32(&PID, ang_pos_des - ang_pos);
+
+		  if (Duty >= 0)
+		  {
+			  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+			  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+			  if (Duty > 9900)
+			  {
+				  Duty = 9900;
+			  }
+			  else if (fabs(Duty) < 1000)
+			  {
+				  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+			  }
+
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, fabs(Duty));
+		  }
+		  else
+		  {
+			  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+			  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+
+			  if (Duty < -9900)
+			  {
+				  Duty = -9900;
+			  }
+			  else if (fabs(Duty) < 1000)
+			  {
+				  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+			  }
+
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, fabs(Duty));
+		  }
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -222,6 +279,11 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
+  sConfigOC.Pulse = 0;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
   sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
   sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
@@ -261,7 +323,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 3071;
+  htim2.Init.Period = 310271;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
@@ -286,6 +348,51 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 83;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 4294967295;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
 
 }
 
@@ -356,7 +463,18 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim == &htim5)
+	{
+		_micros += UINT32_MAX;
+	}
+}
 
+uint64_t micros()
+{
+	return __HAL_TIM_GET_COUNTER(&htim5)+_micros;
+}
 /* USER CODE END 4 */
 
 /**
